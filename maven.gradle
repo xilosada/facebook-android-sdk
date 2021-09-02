@@ -1,24 +1,24 @@
-/**
- * Copyright (c) 2014-present, Facebook, Inc. All rights reserved.
- *
- * You are hereby granted a non-exclusive, worldwide, royalty-free license to use,
- * copy, modify, and distribute this software in source code or binary form for use
- * in connection with the web services and APIs provided by Facebook.
- *
- * As with any software that integrates with the Facebook platform, your use of
- * this software is subject to the Facebook Developer Principles and Policies
- * [http://developers.facebook.com/policy/]. This copyright notice shall be
- * included in all copies or substantial portions of the software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+///**
+// * Copyright (c) 2014-present, Facebook, Inc. All rights reserved.
+// *
+// * You are hereby granted a non-exclusive, worldwide, royalty-free license to use,
+// * copy, modify, and distribute this software in source code or binary form for use
+// * in connection with the web services and APIs provided by Facebook.
+// *
+// * As with any software that integrates with the Facebook platform, your use of
+// * this software is subject to the Facebook Developer Principles and Policies
+// * [http://developers.facebook.com/policy/]. This copyright notice shall be
+// * included in all copies or substantial portions of the software.
+// *
+// * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// */
 
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 apply plugin: 'org.jetbrains.dokka'
 
@@ -42,54 +42,59 @@ task setVersion {
     }
 }
 
-uploadArchives {
-    repositories.mavenDeployer {
-        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = project.ext.artifactId
 
-        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-            authentication(userName: ossrhUsername, password: ossrhPassword)
-        }
+            pom {
 
-        snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-            authentication(userName: ossrhUsername, password: ossrhPassword)
-        }
+                name = project.ext.name
+                packaging = 'aar'
+                description = project.ext.description
+                url = project.ext.url
 
-        pom.project {
-            name project.ext.name
-            artifactId project.ext.artifactId
-            packaging 'aar'
-            description project.ext.description
-            url project.ext.url
 
-            scm {
-                connection 'scm:git@github.com:facebook/facebook-android-sdk.git'
-                developerConnection 'scm:git@github.com:facebook/facebook-android-sdk.git'
-                url 'https://github.com/facebook/facebook-android-sdk'
-            }
+                scm {
+                    url = project.ext.url
+                    connection = 'scm:git@github.com:facebook/facebook-android-sdk.git'
+                    developerConnection = 'scm:git@github.com:facebook/facebook-android-sdk.git'
+                }
 
-            licenses {
-                license {
-                    name 'Facebook Platform License'
-                    url 'https://github.com/facebook/facebook-android-sdk/blob/master/LICENSE.txt'
-                    distribution 'repo'
+                licenses {
+                    license {
+                        name = 'Facebook Platform License'
+                        url = 'https://github.com/facebook/facebook-android-sdk/blob/master/LICENSE.txt'
+                        distribution = 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'facebook'
+                        name = 'Facebook'
+                    }
                 }
             }
+        }
+    }
 
-            developers {
-                developer {
-                    id 'facebook'
-                    name 'Facebook'
-                }
+    repositories {
+        maven {
+            url isSnapshot ? 'https://oss.sonatype.org/content/repositories/snapshots/' : 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username = ossrhUsername
+                password = ossrhPassword
             }
         }
     }
 }
 
-uploadArchives.dependsOn(setVersion)
+//publishing.dependsOn(setVersion)
 
 signing {
     required { !isSnapshot && gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
+    sign publishing.publications.mavenJava
 }
 
 task androidJavadocs(type: Javadoc) {
@@ -118,8 +123,8 @@ task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
 }
 
 artifacts {
-      archives androidSourcesJar
-      archives javadocJar
+    archives androidSourcesJar
+    archives javadocJar
 }
 
 afterEvaluate {

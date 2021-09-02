@@ -27,13 +27,16 @@ buildscript {
         mavenCentral()
         google()
         jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
 
     dependencies {
         classpath "com.android.tools.build:gradle:${project.ext.gradleVersion}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlinVersion}"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${project.ext.dokkaVersion}"
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:5.14.3"
     }
+
 }
 
 allprojects {

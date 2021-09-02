@@ -157,3 +157,6 @@ tasks.named("dokkaJavadoc").configure {
 }
 
 apply from: "${rootDir}/maven.gradle"
+apply from: "$rootDir/spotless.gradle"
+
+//apply plugin: "com.ncorti.ktfmt.gradle"
